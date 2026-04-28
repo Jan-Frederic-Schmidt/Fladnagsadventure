@@ -39,6 +39,10 @@
 - teile des codes wurden ausversehen gelöscht
 
 ### 24.04.2026:
-- Wiederherstellung des Codes, sofern möglich  
+- Wiederherstellung des Codes, sofern möglich
+
+# Vico
+### 28.04.2026:
+- Fladnag Pixel 
 
 
