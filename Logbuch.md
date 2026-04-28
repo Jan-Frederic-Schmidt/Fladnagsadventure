@@ -36,6 +36,9 @@
 - Wer wird millionär?: design anfangen
 - code nochmal neu schreiben, weil resultat nicht gefällt
 - "Button" einfügen
+- teile des codes wurden ausversehen gelöscht
 
+### 24.04.2026:
+- Wiederherstellung des Codes, sofern möglich  
 
 
