@@ -12,6 +12,11 @@
 - Level 3 Score gelöst
 - Level 3 abgeschlossen
 
+### 28.04.2026
+- Level 1 gestartet
+- Level 1 von Pong auf Rennspiel geändert
+- mit time angefangen, Zeit zu messen
+
 # Noah
 ### 16.04.2026 - nicht Schule:
  - Schachbrett und Figuren programmiert
