@@ -43,8 +43,10 @@
 - "Button" einfügen
 - teile des codes wurden ausversehen gelöscht
 
-### 24.04.2026:
+### 28.04.2026:
 - Wiederherstellung des Codes, sofern möglich
+- Sounds einfügen, einzeln und playlist
+- "on Exit" Funktion eingeführt und Fehlermeldung zu fehlendem "return False" verstanden und gelöst 
 
 # Vico
 ### 28.04.2026:
