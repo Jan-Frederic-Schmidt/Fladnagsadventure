@@ -11,3 +11,7 @@ Lead the wizard Fladnag through dangerous territory and difficult challenges. Em
 6. Wer wird Millionär? (Noah)
 7. Schach (Noah)
 8. Bossfight (Vico)
+
+#Music
+- https://pixabay.com/de/music/%c3%bcberschrift-warriorx27s-anthem-248786/
+- https://pixabay.com/de/music/optimistisch-level-one-8-bit-pixel-warriors-chapter-one-415685/ (1-10)
