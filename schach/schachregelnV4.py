@@ -31,9 +31,9 @@ _FIG_WERTE = dict(P=1, K=99999,Q=9, R=5, B=3 , N=3,
 
 MAX_TIEFE = 4
 
-def zugGenerator(weiss, position, rochaderecht):
+def zugGenerator(weiss, position, rochaderecht,en_passant_zielfeld):
     zuege = []
-    pseudo, koenigsposition = _pseudoZugGenerator(weiss, position)
+    pseudo, koenigsposition = _pseudoZugGenerator(weiss, position, en_passant_zielfeld)
     for zug in pseudo:
         zug_ausfuehren(zug, position, koenigsposition)
         if not imSchach(weiss, position, koenigsposition[weiss]):
@@ -74,7 +74,17 @@ def imSchach(weiss,position, von):
 
 def zug_ausfuehren(zug, position, koenigsposition):
     fig, von, zu, capture, umwandlung, rochade = zug
+    neu_ep_feld = None
+
+    if fig.lower() == 'p' and capture == 'ep':
+        richtung = 1 if fig.isupper() else -1
+        position.pop((zu[0], zu[1] + richtung))
+    
     position[zu] = position.pop(von)
+
+    if fig.lower() == 'p' and abs(von[1] - zu[1]) == 2:
+        neu_ep_feld = (von[0], (von[1] + zu[1]) // 2)
+
     if umwandlung:
         position[zu] = 'Q' if fig.isupper() else 'q'
     if fig in 'kK':
@@ -82,13 +92,19 @@ def zug_ausfuehren(zug, position, koenigsposition):
     if rochade:
         tv, tz = _MOVES_ROCH[rochade][1]
         position[tz] = position.pop(tv)
+    
+    return neu_ep_feld
         
         
 def zug_zuruecknehmen(zug, position, koenigsposition):
     fig, von, zu, capture, umwandlung, rochade = zug
     position[von] = position.pop(zu)
     if capture:
-        position[zu] = capture
+        if capture == 'ep': 
+            richtung = 1 if fig.isupper() else -1
+            position[(zu[0], zu[1] + richtung)] = 'p' if fig.isupper() else 'P'
+        else:
+            position[zu] = capture
     if umwandlung:
         position[von] = 'P' if fig.isupper() else 'p'
     if fig in 'kK':
@@ -99,16 +115,15 @@ def zug_zuruecknehmen(zug, position, koenigsposition):
         
             
             
-def _pseudoZugGenerator(weiss, position):  
+def _pseudoZugGenerator(weiss, position, en_passant_zielfeld): 
     pseudo = []
     koenigsposition = [None, None]
     for von, fig in position.items():
-        if fig in 'kK':
-            koenigsposition[fig.isupper()] = von
-        if fig.isupper() != weiss: 
-            continue
+        if fig in 'kK': koenigsposition[fig.isupper()] = von
+        if fig.isupper() != weiss: continue
+        
         if fig in 'pP':
-            _zuegeBauern(weiss, fig, von, position, pseudo)
+            _zuegeBauern(weiss, fig, von, position, pseudo, en_passant_zielfeld) 
             continue
         f = fig.lower()
         if fig == 'K': 
@@ -131,34 +146,37 @@ def _pseudoZugGenerator(weiss, position):
                     pseudo.append((fig, von, zu, False, False, False))                
     return pseudo, koenigsposition
 
-def _zuegeBauern(weiss, fig, von, position, pseudo):
-    #(Angelo) Stiller Zug (HILFE ICH KANN NICHT MEHR!!!!!!)
+def _zuegeBauern(weiss, fig, von, position, pseudo, en_passant_zielfeld):
+    # (Angelo) Stiller Zug
     for ds, dz in _MOVES[fig][1:]:
         for m in range(1, _MOVES[fig][0] + 1):
             zu = (von[0], von[1] + dz * m)  
             if zu not in brett or zu in position: break
             if m==2 and von[1] != _GRUNDLINIE[weiss]: break
-            if zu[1] in (0,7): 
-                pseudo.append((fig, von, zu, False, True, False))
-            else:   
-                pseudo.append((fig, von, zu, False, False, False))
-    #(Xaver) Schalg(er)zug (Die Stimmen werden Lauterrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr...Sie kommen...)
+            pseudo.append((fig, von, zu, False, zu[1] in (0,7), False))
+
+    # Schlagzüge u. En Passant
     for ds, dz in _MOVES[fig+'c'][1:]:
         zu = (von[0]+ ds, von[1] + dz)  
-        if zu not in position: continue
-        if position[zu].isupper()== weiss: continue
+        if zu == en_passant_zielfeld: 
+            pseudo.append((fig, von, zu, 'ep', False, False))
+        if zu not in position: 
+            continue
+        if position[zu].isupper() == weiss: 
+            continue
+        
         if zu[1] in (0,7): 
             pseudo.append((fig, von, zu, position[zu], True, False))
-        else:   
-            pseudo.append((fig, von, zu, position[zu], False, False))         
-
+        else: 
+            pseudo.append((fig, von, zu, position[zu], False, False))
+        
 def bewerte_position(position):
     return sum(_FIG_WERTE[fig] for fig in position.values())           
                                  
-def minimax(tiefe, alpha, beta, weiss, position, rochaderecht):
+def minimax(tiefe, alpha, beta, weiss, position, rochaderecht, ep_feld):
     if tiefe == MAX_TIEFE:
-        return (bewerte_position(position), None)
-    zugliste, koenigsposition = zugGenerator(weiss, position, rochaderecht)
+        return (bewerte_position(position), None) 
+    zugliste, koenigsposition = zugGenerator(weiss, position, rochaderecht, ep_feld)
     if not zugliste:
         if not imSchach(weiss, position, koenigsposition[weiss]):
             return (0, None)
@@ -168,10 +186,11 @@ def minimax(tiefe, alpha, beta, weiss, position, rochaderecht):
     bester_zug = None
     for zug in zugliste:
         safe_roch = rochaderecht[:]
-        zug_ausfuehren(zug, position, koenigsposition)
-        wert, _ = minimax(tiefe+1, alpha, beta, not weiss, position, rochaderecht)
+        naechstes_ep = zug_ausfuehren(zug, position, koenigsposition)
+        wert, _ = minimax(tiefe+1, alpha, beta, not weiss, position, rochaderecht, naechstes_ep)
         zug_zuruecknehmen(zug, position, koenigsposition)
         rochaderecht = safe_roch
+        
         if weiss:
             if wert > beste_bewertung:
                 beste_bewertung = wert
@@ -182,6 +201,7 @@ def minimax(tiefe, alpha, beta, weiss, position, rochaderecht):
                 beste_bewertung = wert
                 bester_zug = zug
             beta = min(beta, wert)
+            
         if alpha >= beta:
-            break
-    return beste_bewertung, bester_zug
+            break 
+    return (beste_bewertung, bester_zug)

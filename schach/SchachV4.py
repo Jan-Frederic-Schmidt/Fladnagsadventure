@@ -1,6 +1,6 @@
 from gamegrid import *
 import schachregelnV4
-
+from soundsystem import *
 # Disclaimer:
 # Ich habe das natürlich nicht ohne Hilfe programmieren können.
 # Ich habe große Teile aus Tutorial Videos entnommen (https://youtu.be/STHZzsW7ODs?si=6VQf4vlOpH8pi0Hi, und weitere des Kanals)
@@ -13,10 +13,19 @@ startLoc = None
 selected_from = None     
 zielfelder = set()  
 spielende = False      
+en_passant_zielfeld = None
+
+def onExit():
+    stop()      
+    dispose()   
+    return False
 
 def pressCallback(e):
     global actor, startLoc, selected_from, zielfelder
     if spielende: return
+    
+    loescheZielfelder()
+    
     startLoc = toLocationInGrid(e.getX(), e.getY())
     actor = getOneActorAt(startLoc)
     if actor is None:
@@ -37,49 +46,53 @@ def dragCallback(e):
                             e.getY() - 100 * startLoc.y - 50)
 
 def releaseCallback(e):
-    global actor, weiss, zuege, position, koenigsposition, spielende
+    global actor, weiss, zuege, position, koenigsposition, spielende, en_passant_zielfeld
     if actor is None or spielende:
         return
+    
     destLoc = toLocationInGrid(e.getX(), e.getY())
     zu = (destLoc.x, destLoc.y)  
     actor.setLocationOffset(0, 0)
-
-  
+    
+    loescheZielfelder()
 
     if zu in zielfelder:
         zug = [z for z in zuege if z[1] == selected_from and z[2] == zu][0]
-        schachregelnV4.zug_ausfuehren(zug, position, koenigsposition)
-        removeAllActors()
-        zeichneFiguren(position)
+
+        en_passant_zielfeld = schachregelnV4.zug_ausfuehren(zug, position, koenigsposition)
+        
+        aktualisiereGrafik()
         weiss = not weiss
-        zuege, koenigsposition = schachregelnV4.zugGenerator(weiss, position, rochaderecht)
-        if not zuege:
-            print(("Weiss" if weiss else "Schwarz") + " ist ", end='')
-            if schachregelnV4.imSchach(weiss, position, koenigsposition[weiss]):
-                print('Matt')
-            else:
-                print('Patt')
-            spielende = True
-        elif spieler[weiss]:
-            beste_bewertung, bester_zug = schachregelnV4.minimax(0, -9999999, 9999999, weiss, position, rochaderecht)
+        pruefeSpielende()
+        
+        if not spielende and spieler[weiss]:
+            beste_bewertung, bester_zug = schachregelnV4.minimax(0, -9999999, 9999999, weiss, position, rochaderecht, en_passant_zielfeld)
             if bester_zug is not None:
-                schachregelnV4.zug_ausfuehren(bester_zug, position, koenigsposition)
+                en_passant_zielfeld = schachregelnV4.zug_ausfuehren(bester_zug, position, koenigsposition)
                 weiss = not weiss
-                zuege, koenigsposition = schachregelnV4.zugGenerator(weiss, position, rochaderecht)
-                if not zuege:
-                    print(("Weiss" if weiss else "Schwarz") + " ist ", end='')
-                    if schachregelnV4.imSchach(weiss, position, koenigsposition[weiss]):
-                        print('Matt')
-                    else:
-                        print('Patt')
-                    spielende = True
-        showBrett(schachregelnV4.brett)
-        removeAllActors()
-        zeichneFiguren(position)
+                aktualisiereGrafik()
+                pruefeSpielende()
     else:
         actor.setLocation(startLoc)
     actor = None
+
+def pruefeSpielende():
+    global zuege, koenigsposition, spielende
+    zuege, koenigsposition = schachregelnV4.zugGenerator(weiss, position, rochaderecht, en_passant_zielfeld)
+    if not zuege:
+        spielende = True
+        txt = ""
+        if schachregelnV4.imSchach(weiss, position, koenigsposition[weiss]):
+            sieger = "Schwarz" if weiss else "Weiss"
+            txt = "MATT! " + sieger + " gewinnt!"
+        else:
+            txt = "PATT! Unentschieden."
         
+        bg = getBg()
+        bg.setPaintColor(Color.RED)
+        bg.setFont(Font("Arial", Font.BOLD, 40))
+        bg.drawText(txt, Point(150, 400))
+        refresh()    
     
 def showBrett(brett):
     for (s, z), feld in brett.items():
@@ -89,7 +102,15 @@ def showBrett(brett):
             farbe = makeColor('#e4bba7')  
         getBg().fillCell(Location(s, z), farbe)
     refresh()
-    
+
+def loescheZielfelder():
+    showBrett(schachregelnV4.brett) 
+
+def aktualisiereGrafik():
+    removeAllActors()
+    zeichneFiguren(position)
+    refresh()
+
 def fen2position(fen):
     position, s ,z, rochaderecht = {}, 0,0, ['','']
     figurenstellung, zugrecht, rochaderechte, enpassant, zug50, zugnr = fen.split()
@@ -140,7 +161,7 @@ position, zugrecht, rochaderecht = fen2position(fen)
 figuren = ladeFiguren()
 weiss = (zugrecht == 'w')
 print(("Weiss" if weiss else "Schwarz") + " ist am Zug")
-zuege, koenigsposition = schachregelnV4.zugGenerator(weiss, position, rochaderecht)
+zuege, koenigsposition = schachregelnV4.zugGenerator(weiss, position, rochaderecht, en_passant_zielfeld)
 spieler = [True, False]
 
 
@@ -156,5 +177,11 @@ zeichneFiguren(position)
 setSimulationPeriod(30)
 if spielende:
     stop()
+    
+openSoundPlayer("/Users/noahpartzsch/Informatik Spiel/Sounds/song0.wav")
+play()
+
+addExitListener(onExit)
+
 show()
 doRun()
