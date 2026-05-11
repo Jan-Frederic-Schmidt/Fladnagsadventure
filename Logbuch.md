@@ -51,10 +51,12 @@
 ### 05.05.2026:
 - Pixeln der Spielgrafiken
 - Ablauf für den Bossfight geplant
+- Debugging Schach
 
 ### 08.05.2026:
 - Skalieren von Actors getestet
 - Grundgerüst für den Kampf zwischen Fladnag und Spenning Hin erstellt
+- Dialog geschrieben
 
 ### 11.05.2026:
 - Dialog-System mit Sprechblasen programmiert
