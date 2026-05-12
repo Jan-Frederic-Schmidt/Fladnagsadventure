@@ -1,9 +1,10 @@
 from gamegrid import *
 import random
+
 def level3():
     class Wizard(Actor):
         def __init__(self, score):
-            Actor.__init__(self, True, "sprites/mbrobot.gif")
+            Actor.__init__(self, "H:\Informatik\Python/fladnagsAdventure/sprites/fladnagLaufend@2x.png", 2)
             self.score = score    
     
     class Crystal(Actor):
@@ -30,9 +31,11 @@ def level3():
         if wizard.getX()!= 0 and wizard.getX() != 14:
             if keyCode == 65:
                 wizard.setDirection(180)
+                wizard.showNextSprite()
                 wizard.move()
             elif keyCode == 68:
                 wizard.setDirection(0)
+                wizard.showNextSprite()
                 wizard.move()
         else:
             wizard.turn(180)
@@ -43,7 +46,7 @@ def level3():
         button = getOneActorAt(location, NewGame)
         if button != None:
             removeAllActors()
-            addActor(wizard, Location(7, 14))
+            addActor(wizard, Location(7, 13))
             addActor(Crystal(), Location(random.randint(0, 14),4))
             
     def catchCrystal():
@@ -64,12 +67,12 @@ def level3():
         wizard.score = 0
         setStatusText("Dein Score: " + str(wizard.score))
         addActor(LostScreen(), Location(7,7))
-        addActor(NewGame(), Location(7, 8))
+        addActor(NewGame(), Location(7, 9))
     
     makeGameGrid(15, 15, 40, None, "sprites/town.jpg", False, keyPressed = keyCallbackLevelThree, mousePressed = clickOnButton)
     addStatusBar(20)
     wizard = Wizard(0)
-    addActor(wizard, Location(7, 14))
+    addActor(wizard, Location(7, 13))
     addActor(Crystal(), Location(random.randint(0, 14),4))
     setStatusText("Dein Score: " + str(wizard.score))
     
