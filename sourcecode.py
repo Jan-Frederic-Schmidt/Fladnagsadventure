@@ -11,7 +11,7 @@ class WinScreen(Actor):
             
 class NewGame(Actor):
     def __init__(self):
-        Actor.__init__(self, True, "sprites/btn_renew_0.gif")
+        Actor.__init__(self, True, "H:\Informatik\Python/fladnagsAdventure/sprites/restart.png")
 
 def startscreen():
     class Button(Actor):
@@ -26,7 +26,7 @@ def startscreen():
         if button == buttonLevel3:
             level3()
             
-    makeGameGrid(13, 13, 46, None, "sprites/town.jpg", False, mousePressed = clickOnButton)
+    makeGameGrid(16, 9, 45, None, "H:\Informatik\Python/fladnagsAdventure/sprites/Hintergrund_Start@169.png", False, mousePressed = clickOnButton)
     buttonLevel1 = Button()
     buttonLevel2 = Button()
     buttonLevel3 = Button()
@@ -34,12 +34,12 @@ def startscreen():
     buttonLevel5 = Button()
     buttonLevel6 = Button()
 
-    addActor(buttonLevel1, Location(4, 5))
-    addActor(buttonLevel2, Location(6, 5))
-    addActor(buttonLevel3, Location(8, 5))
-    addActor(buttonLevel4, Location(4, 7))
-    addActor(buttonLevel5, Location(6, 7))
-    addActor(buttonLevel6, Location(8, 7))
+    addActor(buttonLevel1, Location(5, 3))
+    addActor(buttonLevel2, Location(7, 3))
+    addActor(buttonLevel3, Location(9, 3))
+    addActor(buttonLevel4, Location(5, 5))
+    addActor(buttonLevel5, Location(7, 5))
+    addActor(buttonLevel6, Location(9, 5))
 
     show()
     doRun()
